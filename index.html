@@ -7,9 +7,13 @@ attribute  vec4 vPosition;
 
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
+attribute  vec2 vTexCoord;
+varying vec2 fTexCoord;
+
 
 void main()
 {
+    fTexCoord = vTexCoord;
     gl_Position = projectionMatrix * modelViewMatrix * vPosition;
 }
 </script>
@@ -18,9 +22,14 @@ void main()
 
 precision mediump float;
 
+varying  vec2 fTexCoord;
+uniform sampler2D chess0;
+uniform sampler2D chess1;
+uniform bool isTorso;
 void main()
 {
-    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    if (isTorso) gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0)*(texture2D(chess0, fTexCoord)*texture2D(chess1, fTexCoord));
+    else gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 
 }
 </script>
@@ -104,7 +113,7 @@ right lower leg angle -180 <input id="slider9" type="range"
 
 
 <body>
-<canvas id="gl-canvas" width="512"" height="512">
+<canvas id="gl-canvas" width="512"" height="700">
 Oops ... your browser doesn't support the HTML5 canvas element
 </canvas>
 </body>

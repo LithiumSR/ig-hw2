@@ -24,6 +24,14 @@ var vertices = [
 ];
 
 
+var eye;
+var scale = 2;
+var radius = 1.0
+const at = vec3(0.0, 0.0, 0.0);
+const up = vec3(0.0, 1.0, 0.0);
+var theta  = 0.0;
+var phi    = 0.0;
+
 var torsoId = 0;
 var headId = 1;
 var head1Id = 1;
@@ -37,28 +45,50 @@ var leftLowerHindLegId = 7;
 var rightUpperHindLegId = 8;
 var rightLowerHindLegId = 9;
 var tailId = 11;
+var headUpperId = 12;
 
-var tailWidth = 0.5;
-var tailHeight = 3;
-var torsoHeight = 7.0;
-var torsoWidth = 2;
-var upperArmHeight = 2.0;
-var lowerArmHeight = 2.0;
-var upperArmWidth = 0.5;
-var lowerArmWidth = 0.5;
-var upperLegWidth = 0.5;
-var lowerLegWidth = 0.5;
-var lowerLegHeight = 2.0;
-var upperLegHeight = 2.0;
-var headHeight = 2;
-var headWidth = 1;
+var tailWidth = 0.5/scale;
+var tailHeight = 3/scale;
+var torsoHeight = 7.0/scale;
+var torsoWidth = 2/scale;
+var upperArmHeight = 2.0/scale;
+var lowerArmHeight = 2.0/scale;
+var upperArmWidth = 0.5/scale;
+var lowerArmWidth = 0.5/scale;
+var upperLegWidth = 0.5/scale;
+var lowerLegWidth = 0.5/scale;
+var lowerLegHeight = 2.0/scale;
+var upperLegHeight = 2.0/scale;
+var headHeight = 1.1/scale;
+var headWidth = 1/scale;
+var upperHeadHeight = 2/scale;
+var upperHeadWidth = 1/scale;
 
-var numNodes = 12;
-var numAngles = 12;
+var numNodes = 13;
+var numAngles = 13;
 var angle = 0;
 
 
-var theta = [90, 180, 90, 0, 45, 0, 45, 0, 90, 0, 0, 160];
+var texture1, texture2;
+var texSize = 256;
+var numChecks = 8;
+var c;
+
+//legs
+var leftLowerLegFlag = false;
+var leftUpperLegFlag = false;
+
+var rightLowerLegFlag = false;
+var rightUpperLegFlag = false;
+
+//arms
+var leftLowerArmFlag = false;
+var leftUpperArmFlag = false;
+
+var rightLowerArmFlag = false;
+var rightUpperArmFlag = false;
+var translationOverX = -10;
+var theta = [90, 90, 90, 0, 0, 0, 45, 0, 90, 0, 0, 160, 105];
 
 var numVertices = 24;
 
@@ -71,9 +101,51 @@ for (var i = 0; i < numNodes; i++) figure[i] = createNode(null, null, null, null
 var vBuffer;
 var modelViewLoc;
 
+var texCoordsArray = [];
 var pointsArray = [];
 
-//-------------------------------------------
+var texCoord = [
+    vec2(0, 0),
+    vec2(0, 1),
+    vec2(1, 1),
+    vec2(1, 0)
+];
+
+var vertexColors = [
+    vec4(0.0, 0.0, 0.0, 1.0), // black
+    vec4(1.0, 0.0, 0.0, 1.0), // red
+    vec4(1.0, 1.0, 0.0, 1.0), // yellow
+    vec4(0.0, 1.0, 0.0, 1.0), // green
+    vec4(0.0, 0.0, 1.0, 1.0), // blue
+    vec4(1.0, 0.0, 1.0, 1.0), // magenta
+    vec4(0.0, 1.0, 1.0, 1.0), // white
+    vec4(0.0, 1.0, 1.0, 1.0) // cyan
+];
+
+var image1 = new Uint8Array(4 * texSize * texSize);
+for (var i = 0; i < texSize; i++) {
+    for (var j = 0; j < texSize; j++) {
+        var patchx = Math.floor(i / (texSize / numChecks));
+        var patchy = Math.floor(j / (texSize / numChecks));
+        if (patchx % 2 ^ patchy % 2) c = 255;
+        else c = 0;
+        image1[4 * i * texSize + 4 * j] = c;
+        image1[4 * i * texSize + 4 * j + 1] = c;
+        image1[4 * i * texSize + 4 * j + 2] = c;
+        image1[4 * i * texSize + 4 * j + 3] = 255;
+    }
+}
+
+var image2 = new Uint8Array(4 * texSize * texSize);
+for (var i = 0; i < texSize; i++) {
+    for (var j = 0; j < texSize; j++) {
+        image2[4 * i * texSize + 4 * j] = 127 + 127 + i;
+        image2[4 * i * texSize + 4 * j + 1] = 127 + 127 + i;
+        image2[4 * i * texSize + 4 * j + 2] = 127 + 127 + i;
+        image2[4 * i * texSize + 4 * j + 3] = 255;
+    }
+}
+
 
 function scale4(a, b, c) {
     var result = mat4();
@@ -82,8 +154,6 @@ function scale4(a, b, c) {
     result[2][2] = c;
     return result;
 }
-
-//--------------------------------------------
 
 
 function createNode(transform, render, sibling, child) {
@@ -97,14 +167,34 @@ function createNode(transform, render, sibling, child) {
 }
 
 
+function configureTexture() {
+    texture1 = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture1);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texSize, texSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, image1);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+        gl.NEAREST_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    texture2 = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture2);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texSize, texSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, image2);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+        gl.NEAREST_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+}
+
 function initNodes(Id) {
 
     var m = mat4();
 
     switch (Id) {
-
         case torsoId:
-            m = rotate(theta[torsoId], 0, 1, 0);
+            m = translate(translationOverX, 5, 0);
+            m = mult(m, rotate(theta[torsoId], 0, 1, 0));
             m = mult(m, rotate(90, 1, 0, 0))
             figure[torsoId] = createNode(m, torso, null, headId);
             break;
@@ -112,11 +202,18 @@ function initNodes(Id) {
         case headId:
         case head1Id:
         case head2Id:
-            m = translate(0.0, torsoHeight * 0.8 + headHeight * 0.5, -headWidth * 1.5);
+            m = translate(0.0, torsoHeight * 0.8 + headHeight *0.82, -headWidth * 0.55);
             m = mult(m, rotate(theta[head1Id], 1, 0, 0))
             m = mult(m, rotate(theta[head2Id], 0, 1, 0));
             m = mult(m, translate(0.0, -0.5 * headHeight, 0.0));
-            figure[headId] = createNode(m, head, tailId, null);
+            figure[headId] = createNode(m, head, tailId, headUpperId);
+            break;
+        case headUpperId:
+            m = translate(0.0, -torsoHeight  + upperHeadHeight * 2.8, upperHeadWidth*0.5);
+            m = mult(m, rotate(theta[headUpperId], 1, 0, 0))
+            m = mult(m, rotate(theta[head2Id], 0, 1, 0));
+            m = mult(m, translate(0.0, -0.5 * upperHeadHeight, 0.0));
+            figure[headUpperId] = createNode(m, headUpper, null, null);
             break;
 
         case tailId:
@@ -127,14 +224,14 @@ function initNodes(Id) {
 
         case leftUpperFrontLegId:
 
-            m = translate((torsoWidth + upperArmWidth) * 0.5, 0.6 * torsoHeight, 0.0);
+            m = translate((torsoWidth + upperArmWidth) * 0.5, 0.8 * torsoHeight, 0.0);
             m = mult(m, rotate(theta[leftUpperFrontLegId], 1, 0, 0));
             figure[leftUpperFrontLegId] = createNode(m, leftUpperFrontLeg, rightUpperFrontLegId, leftLowerFrontLegId);
             break;
 
         case rightUpperFrontLegId:
 
-            m = translate(-(torsoWidth + upperArmWidth) * 0.5, 0.6 * torsoHeight, 0.0);
+            m = translate(-(torsoWidth + upperArmWidth) * 0.5, 0.8 * torsoHeight, 0.0);
             m = mult(m, rotate(theta[rightUpperFrontLegId], 1, 0, 0));
             figure[rightUpperFrontLegId] = createNode(m, rightUpperFrontLeg, leftUpperHindLegId, rightLowerFrontLegId);
             break;
@@ -204,9 +301,18 @@ function tail() {
 }
 
 function torso() {
-
+    gl.uniform1i(gl.getUniformLocation(program, "isTorso"), true);
     instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.5 * torsoHeight, 0.0));
     instanceMatrix = mult(instanceMatrix, scale4(torsoWidth, torsoHeight, torsoWidth));
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
+    for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
+    gl.uniform1i(gl.getUniformLocation(program, "isTorso"), false);
+}
+
+function headUpper() {
+
+    instanceMatrix = mult(modelViewMatrix, translate(0, 0.5 * (upperHeadHeight - torsoWidth), 0.0));
+    instanceMatrix = mult(instanceMatrix, scale4(upperHeadWidth, upperHeadHeight, upperHeadWidth));
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
     for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
 }
@@ -283,11 +389,19 @@ function rightLowerHindLeg() {
 }
 
 
+function animate() {
+
+}
+
 function quad(a, b, c, d) {
     pointsArray.push(vertices[a]);
+    texCoordsArray.push(texCoord[0])
     pointsArray.push(vertices[b]);
+    texCoordsArray.push(texCoord[1])
     pointsArray.push(vertices[c]);
+    texCoordsArray.push(texCoord[2])
     pointsArray.push(vertices[d]);
+    texCoordsArray.push(texCoord[3])
 }
 
 
@@ -312,7 +426,7 @@ window.onload = function init() {
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
-
+    gl.enable(gl.DEPTH_TEST);
     //
     //  Load shaders and initialize attribute buffers
     //
@@ -333,15 +447,23 @@ window.onload = function init() {
 
     cube();
 
-    vBuffer = gl.createBuffer();
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
 
-    var vPosition = gl.getAttribLocation(program, "vPosition");
-    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPosition);
+    var vBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer);
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW );
 
+    var vPosition = gl.getAttribLocation( program, "vPosition" );
+    gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vPosition );
+
+    var tBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer);
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW );
+
+    var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
+    gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vTexCoord );
 
     document.getElementById("slider0").onchange = function (event) {
         theta[torsoId] = event.target.value;
@@ -390,11 +512,32 @@ window.onload = function init() {
         initNodes(tailId);
     };
     for (i = 0; i < numNodes; i++) initNodes(i);
+
+    configureTexture();
+
+    gl.activeTexture( gl.TEXTURE0 );
+    gl.bindTexture( gl.TEXTURE_2D, texture1 );
+    gl.uniform1i(gl.getUniformLocation( program, "chess0"), 0);
+
+    gl.activeTexture( gl.TEXTURE1 );
+    gl.bindTexture( gl.TEXTURE_2D, texture2 );
+    gl.uniform1i(gl.getUniformLocation( program, "chess1"), 1);
+
     render();
 }
 
 
 var render = function () {
+    if (true) {
+        //animate();
+        translationOverX += 0.05;
+        if (translationOverX > 10) translationOverX = -10.0;
+        for (i = 0; i < numNodes; i++) initNodes(i);
+    }
+
+    eye = vec3(radius*Math.sin(phi), radius*Math.sin(theta), radius*Math.cos(phi));
+    //modelViewMatrix = lookAt(eye, at , up);
+    gl.uniformMatrix4fv( gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix) );
     gl.clear(gl.COLOR_BUFFER_BIT);
     traverse(torsoId);
     requestAnimFrame(render);
