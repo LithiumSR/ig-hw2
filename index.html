@@ -1,6 +1,57 @@
 <!DOCTYPE html>
 <html>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<style>
+    fieldset {
+        margin: 8px;
+        border: 1px solid silver;
+        padding: 8px;
+        border-radius: 4px;
+        display: inline;
 
+    }
+
+    legend {
+        padding: 2px;
+        width: inherit;
+        /* Or auto */
+        padding: 0 10px;
+        /* To give a bit of padding on the left and right */
+        border-bottom: none;
+        font-size: 100%
+    }
+
+    .slider {
+        -webkit-appearance: none;
+        width: 150px;
+        height: 10px;
+        border-radius: 5px;
+        background: #d3d3d3;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: .2s;
+        transition: opacity .2s;
+    }
+
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: #007BFF;
+        cursor: pointer;
+    }
+
+    .slider::-moz-range-thumb {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: #007BFF;
+        cursor: pointer;
+    }
+</style>
 <script id="vertex-shader" type="x-shader/x-vertex">
 
 attribute  vec4 vPosition;
@@ -25,10 +76,11 @@ precision mediump float;
 varying  vec2 fTexCoord;
 uniform sampler2D chess0;
 uniform sampler2D chess1;
-uniform bool isTorso;
+uniform bool isTorso, useTexture, isGround;
 void main()
 {
-    if (isTorso) gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0)*(texture2D(chess0, fTexCoord)*texture2D(chess1, fTexCoord));
+    if (isGround) gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+    else if (isTorso && useTexture) gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0)*(texture2D(chess0, fTexCoord)*texture2D(chess1, fTexCoord));
     else gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 
 }
@@ -42,79 +94,38 @@ void main()
 <script type="text/javascript" src="Homework2.js"></script>
 
 
-torso angle -180 <input id="slider0" type="range"
- min="-180" max="180" step="10" value="0"
-  />
- 180
-</div><br/>
-<div>
-head2 angle -180 <input id="slider10" type="range"
- min="-180" max="180" step="10" value="0"
-  />
- 180
-</div><br/>
 
-<div>
-head1 angle -180 <input id="slider1" type="range"
- min="-180" max="180" step="10" value="0"
-  />
- 180
-</div><br/>
 
-<div id="slider2">
-left upper arm angle -180 <input id="slider2" type="range"
- min="-180" max="180" step="10" value="0"
-  />
- 180
-</div><br/>
-<div>
-left lower arm angle -180 <input id="slider3" type="range"
- min="-180" max="180" step="10" value="0"
-  />
- 180
-</div><br/>
-<div>
-right upper arm angle -180 <input id="slider4" type="range"
- min="-180" max="180" step="10" value="0"
-  />
- 180
-</div><br/>
-<div>
-right lower arm angle -180 <input id="slider5" type="range"
- min="-180" max="180" step="10" value="0"
-  />
- 180
-</div><br/>
-<div>
-left upper leg angle 0 <input id="slider6" type="range"
- min="0" max="360" step="10" value="180"
-  />
- 360
-</div><br/>
-<div>
-left lower leg angle -180 <input id="slider7" type="range"
- min="-180" max="180" step="10" value="0"
-  />
- 180
-</div><br/>
-<div>
-right upper leg angle 0 <input id="slider8" type="range"
- min="0" max="360" step="10" value="180"
-  />
- 360
-</div><br/>
 
-<div>
-right lower leg angle -180 <input id="slider9" type="range"
- min="-180" max="180" step="10" value="0"
-  />
- 180
-</div><br/>
+
+
 
 
 <body>
-<canvas id="gl-canvas" width="512"" height="700">
-Oops ... your browser doesn't support the HTML5 canvas element
-</canvas>
+        <fieldset>
+                <legend>Texture</legend>
+                <button id="useTexture" class="btn btn-warning">Disable texture</button>
+            </fieldset>
+            
+            <fieldset>
+                <legend>Animation</legend>
+                <button id="useAnimation" class="btn btn-warning">Disable animation</button>
+            </fieldset>
+            
+            <fieldset>
+                <legend>Rotation</legend>
+                <div class="slidecontainer">Torso -180.0 <input autocomplete="off" id="slider0" type="range" min="-180.0" max="180.0"
+                    step="10" value="0" class="slider" /> 180.0</div>
+                    <button id="increaseAlpha" class="btn btn-warning">addALpha</button>
+                    <button id="decreaseAlpha" class="btn btn-warning">decreaseAlpha</button>
+                    <button id="increaseBeta" class="btn btn-warning">increaseBeta</button>
+                    <button id="decreaseBeta" class="btn btn-warning">decreaseBeta</button>
+                        
+            </fieldset>
+            <br/>
+    <canvas id="gl-canvas" width="512" height=" 700">
+        Oops ... your browser doesn't support the HTML5 canvas element
+    </canvas>
 </body>
+
 </html>

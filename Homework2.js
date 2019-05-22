@@ -24,13 +24,15 @@ var vertices = [
 ];
 
 
+var useAnimation = true;
+var useTexture = true;
 var eye;
 var scale = 2;
 var radius = 1.0
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
-var theta  = 0.0;
-var phi    = 0.0;
+var alpha  = 0.0;
+var beta    = 0.0;
 
 var torsoId = 0;
 var headId = 1;
@@ -46,6 +48,7 @@ var rightUpperHindLegId = 8;
 var rightLowerHindLegId = 9;
 var tailId = 11;
 var headUpperId = 12;
+var groundId = 13;
 
 var tailWidth = 0.5/scale;
 var tailHeight = 3/scale;
@@ -63,9 +66,9 @@ var headHeight = 1.1/scale;
 var headWidth = 1/scale;
 var upperHeadHeight = 2/scale;
 var upperHeadWidth = 1/scale;
-
-var numNodes = 13;
-var numAngles = 13;
+var groundWidth = 10
+var numNodes = 14;
+var numAngles = 14;
 var angle = 0;
 
 
@@ -88,7 +91,7 @@ var leftUpperArmFlag = false;
 var rightLowerArmFlag = false;
 var rightUpperArmFlag = false;
 var translationOverX = -10;
-var theta = [90, 90, 90, 0, 0, 0, 45, 0, 90, 0, 0, 160, 105];
+var theta = [90, 90, 90, 0, 0, 0, 45, 0, 90, 0, 0, 160, 105,0];
 
 var numVertices = 24;
 
@@ -196,7 +199,7 @@ function initNodes(Id) {
             m = translate(translationOverX, 5, 0);
             m = mult(m, rotate(theta[torsoId], 0, 1, 0));
             m = mult(m, rotate(90, 1, 0, 0))
-            figure[torsoId] = createNode(m, torso, null, headId);
+            figure[torsoId] = createNode(m, torso, groundId, headId);
             break;
 
         case headId:
@@ -217,7 +220,7 @@ function initNodes(Id) {
             break;
 
         case tailId:
-            m = translate(-(torsoWidth * 0.5 - tailWidth * 2), 0.9 * tailHeight - torsoWidth, 0.0);
+            m = translate(-(torsoWidth * 0.5 - tailWidth * 2), 0.9 * tailHeight - torsoWidth, -0.4);
             m = mult(m, rotate(theta[tailId], 1, 0, 0));
             figure[tailId] = createNode(m, tail, leftUpperFrontLegId, null);
             break;
@@ -276,6 +279,12 @@ function initNodes(Id) {
             m = translate(0.0, upperLegHeight, 0.0);
             m = mult(m, rotate(theta[rightLowerHindLegId], 1, 0, 0));
             figure[rightLowerHindLegId] = createNode(m, rightLowerHindLeg, null, null);
+            break;
+
+        case groundId:
+            m = translate(1, -2, 2);
+            m = mult(m, rotate(theta[groundId], 1, 0, 0));
+            figure[groundId] = createNode(m, baseGround, null, null);
             break;
 
     }
@@ -381,11 +390,19 @@ function rightUpperHindLeg() {
 }
 
 function rightLowerHindLeg() {
-
     instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.5 * lowerLegHeight, 0.0));
     instanceMatrix = mult(instanceMatrix, scale4(lowerLegWidth, lowerLegHeight, lowerLegWidth))
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
     for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
+}
+
+function baseGround() {
+    gl.uniform1i(gl.getUniformLocation(program, "isGround"), true);
+    instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.5 * groundWidth, 0.0));
+    instanceMatrix = mult(instanceMatrix, scale4(groundWidth+15, 0.5, groundWidth))
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
+    for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
+    gl.uniform1i(gl.getUniformLocation(program, "isGround"), false);
 }
 
 
@@ -469,48 +486,41 @@ window.onload = function init() {
         theta[torsoId] = event.target.value;
         initNodes(torsoId);
     };
-    document.getElementById("slider1").onchange = function (event) {
-        theta[head1Id] = event.target.value;
-        initNodes(head1Id);
+
+    document.getElementById("increaseAlpha").onclick = function (event) {
+        alpha +=0.1
+    };
+    document.getElementById("decreaseAlpha").onclick = function (event) {
+        alpha -=0.1
     };
 
-    document.getElementById("slider2").onchange = function (event) {
-        theta[leftUpperFrontLegId] = event.target.value;
-        initNodes(leftUpperFrontLegId);
+    document.getElementById("increaseBeta").onclick = function (event) {
+        beta +=0.1
     };
-    document.getElementById("slider3").onchange = function (event) {
-        theta[leftLowerFrontLeg] = event.target.value;
-        initNodes(leftLowerFrontLeg);
+    document.getElementById("decreaseBeta").onclick = function (event) {
+        beta -=0.1
     };
 
-    document.getElementById("slider4").onchange = function (event) {
-        theta[rightUpperFrontLegId] = event.target.value;
-        initNodes(rightUpperFrontLegId);
-    };
-    document.getElementById("slider5").onchange = function (event) {
-        theta[rightLowerFrontLegId] = event.target.value;
-        initNodes(rightLowerFrontLegId);
-    };
-    document.getElementById("slider6").onchange = function (event) {
-        theta[leftUpperHindLegId] = event.target.value;
-        initNodes(leftUpperHindLegId);
-    };
-    document.getElementById("slider7").onchange = function (event) {
-        theta[leftLowerHindLegId] = event.target.value;
-        initNodes(leftLowerHindLegId);
-    };
-    document.getElementById("slider8").onchange = function (event) {
-        theta[rightUpperHindLegId] = event.target.value;
-        initNodes(rightUpperHindLegId);
-    };
-    document.getElementById("slider9").onchange = function (event) {
-        theta[rightLowerHindLegId] = event.target.value;
-        initNodes(rightLowerHindLegId);
-    };
-    document.getElementById("slider10").onchange = function (event) {
-        theta[tailId] = event.target.value;
-        initNodes(tailId);
-    };
+    document.getElementById("useTexture").onclick = function(){
+        useTexture = !useTexture;
+        var elem = document.getElementById("useTexture");
+        if (useTexture) {
+            elem.innerHTML = "Disable texture";
+        } else {
+            elem.innerHTML = "Enable texture";
+        }
+    }
+
+    document.getElementById("useAnimation").onclick = function(){
+        useAnimation = !useAnimation;
+        var elem = document.getElementById("useAnimation");
+        if (useAnimation) {
+            elem.innerHTML = "Disable animation";
+        } else {
+            elem.innerHTML = "Enable animation";
+        }
+    }
+
     for (i = 0; i < numNodes; i++) initNodes(i);
 
     configureTexture();
@@ -528,16 +538,17 @@ window.onload = function init() {
 
 
 var render = function () {
-    if (true) {
-        //animate();
+    if (useAnimation) {
+        animate();
         translationOverX += 0.05;
         if (translationOverX > 10) translationOverX = -10.0;
         for (i = 0; i < numNodes; i++) initNodes(i);
     }
 
-    eye = vec3(radius*Math.sin(phi), radius*Math.sin(theta), radius*Math.cos(phi));
-    //modelViewMatrix = lookAt(eye, at , up);
+    eye = vec3(radius*Math.sin(alpha), radius*Math.sin(beta), radius*Math.cos(alpha));
+    modelViewMatrix = lookAt(eye, at , up);
     gl.uniformMatrix4fv( gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix) );
+    gl.uniform1i(gl.getUniformLocation(program, "useTexture"), useTexture);
     gl.clear(gl.COLOR_BUFFER_BIT);
     traverse(torsoId);
     requestAnimFrame(render);
