@@ -49,6 +49,12 @@ var rightLowerHindLegId = 9;
 var tailId = 11;
 var headUpperId = 12;
 var groundId = 13;
+var baseObstacleId = 14;
+var cross1Id = 15;
+var cross2Id = 16;
+var upRightObstacleWidthId = 17;
+var upLeftObstacleWidthId = 18;
+var upHorizontalObstacleId = 19;
 
 var tailWidth = 0.5/scale;
 var tailHeight = 3/scale;
@@ -66,9 +72,11 @@ var headHeight = 1.1/scale;
 var headWidth = 1/scale;
 var upperHeadHeight = 2/scale;
 var upperHeadWidth = 1/scale;
+var baseObstacleHeigth = 0.3;
+var baseObstacleWidth = 4;
 var groundWidth = 10
-var numNodes = 14;
-var numAngles = 14;
+var numNodes = 20;
+var numAngles = 20;
 var angle = 0;
 
 
@@ -91,7 +99,7 @@ var leftUpperArmFlag = false;
 var rightLowerArmFlag = false;
 var rightUpperArmFlag = false;
 var translationOverX = -10;
-var theta = [90, 90, 90, 0, 0, 0, 45, 0, 90, 0, 0, 160, 105,0];
+var theta = [90, 90, 90, 0, 0, 0, 45, 0, 90, 0, 0, 160, 105,0,0,20,340,90,90,0];
 
 var numVertices = 24;
 
@@ -284,8 +292,41 @@ function initNodes(Id) {
         case groundId:
             m = translate(1, -2, 2);
             m = mult(m, rotate(theta[groundId], 1, 0, 0));
-            figure[groundId] = createNode(m, baseGround, null, null);
+            figure[groundId] = createNode(m, baseGround, baseObstacleId, null);
             break;
+        case baseObstacleId:
+            m = translate(0.0, baseObstacleHeigth+3, 0.0);
+            m = mult(m, rotate(theta[baseObstacleId], 1, 0, 0));
+            figure[baseObstacleId] = createNode(m, obstacleElem, null, cross1Id);
+            break;
+        case upHorizontalObstacleId:
+            m = translate(0.0, baseObstacleHeigth+baseObstacleHeigth*3.5, 0.0);
+            m = mult(m, rotate(theta[upHorizontalObstacleId], 1, 0, 0));
+            figure[upHorizontalObstacleId] = createNode(m, obstacleElem, null, null);
+            break;
+        case cross1Id:
+            m = translate(0.0, baseObstacleHeigth*2.2, 0.0);
+            m = mult(m, rotate(theta[cross1Id], 1, 0, 0));
+            figure[cross1Id] = createNode(m, obstacleElem, cross2Id, null);
+            break;
+        case cross2Id:
+            m = translate(0.0, baseObstacleHeigth*2.2, 0.0);
+            m = mult(m, rotate(theta[cross2Id], 1, 0, 0));
+            figure[cross2Id] = createNode(m, obstacleElem, upRightObstacleWidthId, null);
+            break;
+
+        case upRightObstacleWidthId:
+            m = translate(0.0, baseObstacleHeigth*3.6, baseObstacleWidth*0.45);
+            m = mult(m, rotate(theta[upRightObstacleWidthId], 1, 0, 0));
+            figure[upRightObstacleWidthId] = createNode(m, obstacleElem2, upLeftObstacleWidthId, null);
+            break;
+
+        case upLeftObstacleWidthId:
+            m = translate(0.0, baseObstacleHeigth*3.6, -baseObstacleWidth*0.5);
+            m = mult(m, rotate(theta[upLeftObstacleWidthId], 1, 0, 0));
+            figure[upLeftObstacleWidthId] = createNode(m, obstacleElem2, upHorizontalObstacleId, null);
+            break;
+
 
     }
 
@@ -404,6 +445,22 @@ function baseGround() {
     for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
     gl.uniform1i(gl.getUniformLocation(program, "isGround"), false);
 }
+
+function obstacleElem() {
+    instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.5 * baseObstacleHeigth, 0.0));
+    instanceMatrix = mult(instanceMatrix, scale4(baseObstacleWidth*0.1, baseObstacleHeigth, baseObstacleWidth))
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
+    for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
+}
+
+function obstacleElem2() {
+    instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.5 * baseObstacleHeigth, 0.0));
+    instanceMatrix = mult(instanceMatrix, scale4(baseObstacleWidth*0.1, baseObstacleHeigth, baseObstacleWidth*0.55))
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
+    for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
+}
+
+
 
 
 function animate() {
