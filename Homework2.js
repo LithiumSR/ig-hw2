@@ -736,15 +736,19 @@ var render = function () {
             if (translationOverX > -0.7) {
                 if (translationOverX > 1 && translationOverY <= 0.0) {
                     translationOverY = 0.0;
-                    if (torsoRotation > 90) torsoRotation = 90.0;
-                    else torsoRotation += 0.2;
+                    if (torsoRotation > 90.0) {
+						torsoRotation-=0.1;
+					}
+
                     isJumping = false;
                     isDescending = false;
                     }
                 else {
                     translationOverY -= 0.05;
                     isDescending = true;
-                    if (translationOverX > 0) torsoRotation += 0.2;
+                    if (translationOverX > 0){
+						torsoRotation += 0.25;
+					}
                 }
             }
             else if (translationOverX > -7.3) {
@@ -756,6 +760,7 @@ var render = function () {
 
 
         if (translationOverX > 10) {
+			torsoRotation = 90.0;
             translationOverX = -10.0;
             translationOverY = 0.0;
         }
