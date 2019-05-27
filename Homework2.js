@@ -26,14 +26,16 @@ var vertices = [
 
 var useAnimation = true;
 var useTexture = true;
+var isJumping = false;
+var isDescending = false;
 var eye;
 var scale = 2;
 var radius = 1.0
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
-var alpha  = 0.0;
-var beta    = 0.0;
-
+var alpha = 0.0;
+var beta = 0.0;
+var torsoRotation = 90.0;
 var torsoId = 0;
 var headId = 1;
 var head1Id = 1;
@@ -56,29 +58,29 @@ var upRightObstacleWidthId = 17;
 var upLeftObstacleWidthId = 18;
 var upHorizontalObstacleId = 19;
 
-var tailWidth = 0.5/scale;
-var tailHeight = 3/scale;
-var torsoHeight = 7.0/scale;
-var torsoWidth = 2/scale;
-var upperArmHeight = 2.0/scale;
-var lowerArmHeight = 2.0/scale;
-var upperArmWidth = 0.5/scale;
-var lowerArmWidth = 0.5/scale;
-var upperLegWidth = 0.5/scale;
-var lowerLegWidth = 0.5/scale;
-var lowerLegHeight = 2.0/scale;
-var upperLegHeight = 2.0/scale;
-var headHeight = 1.1/scale;
-var headWidth = 1/scale;
-var upperHeadHeight = 2/scale;
-var upperHeadWidth = 1/scale;
+var tailWidth = 0.5 / scale;
+var tailHeight = 3 / scale;
+var torsoHeight = 7.0 / scale;
+var torsoWidth = 2 / scale;
+var upperArmHeight = 2.0 / scale;
+var lowerArmHeight = 2.0 / scale;
+var upperArmWidth = 0.5 / scale;
+var lowerArmWidth = 0.5 / scale;
+var upperLegWidth = 0.5 / scale;
+var lowerLegWidth = 0.5 / scale;
+var lowerLegHeight = 2.0 / scale;
+var upperLegHeight = 2.0 / scale;
+var headHeight = 1.1 / scale;
+var headWidth = 1 / scale;
+var upperHeadHeight = 2 / scale;
+var upperHeadWidth = 1 / scale;
 var baseObstacleHeigth = 0.3;
 var baseObstacleWidth = 4;
 var groundWidth = 10
 var numNodes = 20;
 var numAngles = 20;
 var angle = 0;
-
+var disableJump = false;
 
 var texture1, texture2;
 var texSize = 256;
@@ -93,13 +95,14 @@ var rightLowerLegFlag = false;
 var rightUpperLegFlag = false;
 
 //arms
-var leftLowerArmFlag = false;
-var leftUpperArmFlag = false;
+var leftLowerFrontLegFlag = false;
+var leftUpperFrontLegFlag = false;
 
-var rightLowerArmFlag = false;
-var rightUpperArmFlag = false;
+var rightLowerFrontLegFlag = false;
+var rightUpperFrontLegFlag = false;
 var translationOverX = -10;
-var theta = [90, 90, 90, 0, 0, 0, 45, 0, 90, 0, 0, 160, 105,0,0,20,340,90,90,0];
+var translationOverY = 0.0;
+var theta = [90, 90, 90, 0, 90, 0, 110, 0, 90, 0, 0, 160, 105, 0, 0, 15, 345, 90, 90, 0];
 
 var numVertices = 24;
 
@@ -204,23 +207,23 @@ function initNodes(Id) {
 
     switch (Id) {
         case torsoId:
-            m = translate(translationOverX, 5, 0);
+            m = translate(translationOverX, 5 + translationOverY, 0);
             m = mult(m, rotate(theta[torsoId], 0, 1, 0));
-            m = mult(m, rotate(90, 1, 0, 0))
+            m = mult(m, rotate(torsoRotation, 1, 0, 0))
             figure[torsoId] = createNode(m, torso, groundId, headId);
             break;
 
         case headId:
         case head1Id:
         case head2Id:
-            m = translate(0.0, torsoHeight * 0.8 + headHeight *0.82, -headWidth * 0.55);
+            m = translate(0.0, torsoHeight * 0.8 + headHeight * 0.82, -headWidth * 0.55);
             m = mult(m, rotate(theta[head1Id], 1, 0, 0))
             m = mult(m, rotate(theta[head2Id], 0, 1, 0));
             m = mult(m, translate(0.0, -0.5 * headHeight, 0.0));
             figure[headId] = createNode(m, head, tailId, headUpperId);
             break;
         case headUpperId:
-            m = translate(0.0, -torsoHeight  + upperHeadHeight * 2.8, upperHeadWidth*0.5);
+            m = translate(0.0, -torsoHeight + upperHeadHeight * 2.8, upperHeadWidth * 0.5);
             m = mult(m, rotate(theta[headUpperId], 1, 0, 0))
             m = mult(m, rotate(theta[head2Id], 0, 1, 0));
             m = mult(m, translate(0.0, -0.5 * upperHeadHeight, 0.0));
@@ -264,7 +267,7 @@ function initNodes(Id) {
         case leftLowerFrontLegId:
 
             m = translate(0.0, upperArmHeight, 0.0);
-            m = mult(m, rotate(theta[rightLowerFrontLegId], 1, 0, 0));
+            m = mult(m, rotate(theta[leftLowerFrontLegId], 1, 0, 0));
             figure[leftLowerFrontLegId] = createNode(m, leftLowerFrontLeg, null, null);
             break;
 
@@ -295,34 +298,34 @@ function initNodes(Id) {
             figure[groundId] = createNode(m, baseGround, baseObstacleId, null);
             break;
         case baseObstacleId:
-            m = translate(0.0, baseObstacleHeigth+3, 0.0);
+            m = translate(0.0, baseObstacleHeigth + 3, 0.0);
             m = mult(m, rotate(theta[baseObstacleId], 1, 0, 0));
             figure[baseObstacleId] = createNode(m, obstacleElem, null, cross1Id);
             break;
         case upHorizontalObstacleId:
-            m = translate(0.0, baseObstacleHeigth+baseObstacleHeigth*3.5, 0.0);
+            m = translate(0.0, baseObstacleHeigth + baseObstacleHeigth * 3.2, 0.0);
             m = mult(m, rotate(theta[upHorizontalObstacleId], 1, 0, 0));
             figure[upHorizontalObstacleId] = createNode(m, obstacleElem, null, null);
             break;
         case cross1Id:
-            m = translate(0.0, baseObstacleHeigth*2.2, 0.0);
+            m = translate(0.0, baseObstacleHeigth * 2.2, 0.0);
             m = mult(m, rotate(theta[cross1Id], 1, 0, 0));
-            figure[cross1Id] = createNode(m, obstacleElem, cross2Id, null);
+            figure[cross1Id] = createNode(m, crossElem, cross2Id, null);
             break;
         case cross2Id:
-            m = translate(0.0, baseObstacleHeigth*2.2, 0.0);
+            m = translate(0.0, baseObstacleHeigth * 2.2, 0.0);
             m = mult(m, rotate(theta[cross2Id], 1, 0, 0));
-            figure[cross2Id] = createNode(m, obstacleElem, upRightObstacleWidthId, null);
+            figure[cross2Id] = createNode(m, crossElem, upRightObstacleWidthId, null);
             break;
 
         case upRightObstacleWidthId:
-            m = translate(0.0, baseObstacleHeigth*3.6, baseObstacleWidth*0.45);
+            m = translate(0.0, baseObstacleHeigth * 3.6, baseObstacleWidth * 0.45);
             m = mult(m, rotate(theta[upRightObstacleWidthId], 1, 0, 0));
             figure[upRightObstacleWidthId] = createNode(m, obstacleElem2, upLeftObstacleWidthId, null);
             break;
 
         case upLeftObstacleWidthId:
-            m = translate(0.0, baseObstacleHeigth*3.6, -baseObstacleWidth*0.5);
+            m = translate(0.0, baseObstacleHeigth * 3.6, -baseObstacleWidth * 0.5);
             m = mult(m, rotate(theta[upLeftObstacleWidthId], 1, 0, 0));
             figure[upLeftObstacleWidthId] = createNode(m, obstacleElem2, upHorizontalObstacleId, null);
             break;
@@ -333,7 +336,6 @@ function initNodes(Id) {
 }
 
 function traverse(Id) {
-
     if (Id == null) return;
     stack.push(modelViewMatrix);
     modelViewMatrix = mult(modelViewMatrix, figure[Id].transform);
@@ -440,31 +442,148 @@ function rightLowerHindLeg() {
 function baseGround() {
     gl.uniform1i(gl.getUniformLocation(program, "isGround"), true);
     instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.5 * groundWidth, 0.0));
-    instanceMatrix = mult(instanceMatrix, scale4(groundWidth+15, 0.5, groundWidth))
+    instanceMatrix = mult(instanceMatrix, scale4(groundWidth + 15, 0.5, groundWidth))
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
     for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
     gl.uniform1i(gl.getUniformLocation(program, "isGround"), false);
 }
 
 function obstacleElem() {
+    if (disableJump) return;
+    gl.uniform1i(gl.getUniformLocation(program, "isObstacle"), true);
     instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.5 * baseObstacleHeigth, 0.0));
-    instanceMatrix = mult(instanceMatrix, scale4(baseObstacleWidth*0.1, baseObstacleHeigth, baseObstacleWidth))
+    instanceMatrix = mult(instanceMatrix, scale4(baseObstacleWidth * 0.1, baseObstacleHeigth, baseObstacleWidth))
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
     for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
+    gl.uniform1i(gl.getUniformLocation(program, "isObstacle"), false);
+}
+
+function crossElem() {
+    if (disableJump) return;
+    gl.uniform1i(gl.getUniformLocation(program, "isObstacle"), true);
+    instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.5 * baseObstacleHeigth, 0.0));
+    instanceMatrix = mult(instanceMatrix, scale4(baseObstacleWidth * 0.1, baseObstacleHeigth, baseObstacleWidth))
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
+    for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
+    gl.uniform1i(gl.getUniformLocation(program, "isObstacle"), false);
+
 }
 
 function obstacleElem2() {
+    if (disableJump) return;
+    gl.uniform1i(gl.getUniformLocation(program, "isObstacle"), true);
+
     instanceMatrix = mult(modelViewMatrix, translate(0.0, 0.5 * baseObstacleHeigth, 0.0));
-    instanceMatrix = mult(instanceMatrix, scale4(baseObstacleWidth*0.1, baseObstacleHeigth, baseObstacleWidth*0.55))
+    instanceMatrix = mult(instanceMatrix, scale4(baseObstacleWidth * 0.1, baseObstacleHeigth, baseObstacleWidth * 0.55))
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
     for (var i = 0; i < 6; i++) gl.drawArrays(gl.TRIANGLE_FAN, 4 * i, 4);
+    gl.uniform1i(gl.getUniformLocation(program, "isObstacle"), false);
 }
 
 
 
 
 function animate() {
+    //left hind leg
+    if (theta[leftLowerHindLegId] < 0) {
+        leftLowerLegFlag = false;
+    } else if (theta[leftLowerHindLegId] >= 60) {
+        leftLowerLegFlag = true;
+    }
 
+    if ((isJumping && translationOverX > -6.3 && !isDescending) && theta[leftLowerHindLegId] <= 80) {
+        theta[leftLowerHindLegId] += 2.8;
+    }
+    else if (isDescending && translationOverX > 2 && theta[leftLowerHindLegId] > 80) theta[leftLowerHindLegId] -= 0.7;
+
+    if (leftLowerLegFlag && !((isJumping && translationOverX > -6.3 && !isDescending))) {
+        theta[leftLowerHindLegId] -= 0.6;
+    }
+    else if (!(isJumping && !isDescending)) theta[leftLowerHindLegId] += 0.6;
+
+    if (theta[leftUpperHindLegId] < 65) {
+        leftUpperLegFlag = false;
+    } else if (theta[leftUpperHindLegId] >= 95) {
+        leftUpperLegFlag = true;
+    }
+
+    if (leftUpperLegFlag) theta[leftUpperHindLegId] -= 0.4;
+    else theta[leftUpperHindLegId] += 0.4;
+
+
+    //right hind leg
+    if (theta[rightLowerHindLegId] < -20) {
+        rightLowerLegFlag = false;
+    } else if (theta[rightLowerHindLegId] >= 70) {
+        rightLowerLegFlag = true;
+    }
+    if ((isJumping && translationOverX > -6.3 && !isDescending) && theta[rightLowerHindLegId] <= 90) {
+        theta[rightLowerHindLegId] += 2.8;
+    }
+    else if (isDescending && translationOverX > 2 && theta[rightLowerHindLegId] > 70) theta[rightLowerHindLegId] -= 0.7;
+
+    if (!(isJumping && !isDescending) && rightLowerLegFlag) theta[rightLowerHindLegId] -= 0.6;
+    else if (!(isJumping && !isDescending)) theta[rightLowerHindLegId] += 0.6;
+
+    if (theta[rightUpperHindLegId] < 70) {
+        rightUpperLegFlag = false;
+    } else if (theta[rightUpperHindLegId] >= 110) {
+        rightUpperLegFlag = true;
+    }
+
+    if (rightUpperLegFlag) theta[rightUpperHindLegId] -= 0.5;
+    else theta[rightUpperHindLegId] += 0.5;
+
+
+    //left front leg
+    if (theta[leftLowerFrontLegId] < -30) {
+        leftLowerFrontLegFlag = true;
+    } else if (theta[leftLowerFrontLegId] >= 40) {
+        leftLowerFrontLegFlag = false;
+    }
+    if ((isJumping && !isDescending) && theta[leftLowerFrontLegId] <= 90) {
+        theta[leftLowerFrontLegId] += 1.1;
+    }
+    else if (isDescending && theta[leftLowerFrontLegId] > 70) theta[leftLowerFrontLegId] -= 0.7;
+
+    if (leftLowerFrontLegFlag) {
+        theta[leftLowerFrontLegId] += 0.6;
+    }
+    else if (!(isJumping && !isDescending)) theta[leftLowerFrontLegId] -= 0.6;
+
+    if (theta[leftUpperFrontLegId] < 60) {
+        leftUpperFrontLegFlag = false;
+    } else if (theta[leftUpperFrontLegId] >= 110) {
+        leftUpperFrontLegFlag = true;
+    }
+
+    if (leftUpperFrontLegFlag) theta[leftUpperFrontLegId] -= 0.5;
+    else theta[leftUpperFrontLegId] += 0.5;
+
+
+    //right front leg
+    if (theta[rightLowerFrontLegId] < -30) {
+        rightLowerFrontLegFlag = true;
+    } else if (theta[rightLowerFrontLegId] >= 30) {
+        rightLowerFrontLegFlag = false;
+    }
+
+    if ((isJumping && !isDescending) && theta[rightLowerFrontLegId] <= 90) {
+        theta[rightLowerFrontLegId] += 1.3;
+    }
+    else if (isDescending && theta[rightLowerFrontLegId] > 70) theta[rightLowerFrontLegId] -= 0.7;
+
+    if (rightLowerFrontLegFlag) theta[rightLowerFrontLegId] += 0.6;
+    else if (!(isJumping && !isDescending)) theta[rightLowerFrontLegId] -= 0.6;
+
+    if (theta[rightUpperFrontLegId] < 75) {
+        rightUpperFrontLegFlag = false;
+    } else if (theta[rightUpperFrontLegId] >= 95) {
+        rightUpperFrontLegFlag = true;
+    }
+
+    if (rightUpperFrontLegFlag) theta[rightUpperFrontLegId] -= 0.2;
+    else theta[rightUpperFrontLegId] += 0.2;
 }
 
 function quad(a, b, c, d) {
@@ -524,20 +643,20 @@ window.onload = function init() {
 
 
     var vBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW );
+    gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
 
-    var vPosition = gl.getAttribLocation( program, "vPosition" );
-    gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( vPosition );
+    var vPosition = gl.getAttribLocation(program, "vPosition");
+    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPosition);
 
     var tBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer);
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW );
+    gl.bindBuffer(gl.ARRAY_BUFFER, tBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW);
 
-    var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
-    gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( vTexCoord );
+    var vTexCoord = gl.getAttribLocation(program, "vTexCoord");
+    gl.vertexAttribPointer(vTexCoord, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vTexCoord);
 
     document.getElementById("slider0").onchange = function (event) {
         theta[torsoId] = event.target.value;
@@ -545,20 +664,35 @@ window.onload = function init() {
     };
 
     document.getElementById("increaseAlpha").onclick = function (event) {
-        alpha +=0.1
+        alpha += 0.1
     };
     document.getElementById("decreaseAlpha").onclick = function (event) {
-        alpha -=0.1
+        alpha -= 0.1
     };
 
     document.getElementById("increaseBeta").onclick = function (event) {
-        beta +=0.1
+        beta += 0.1
     };
     document.getElementById("decreaseBeta").onclick = function (event) {
-        beta -=0.1
+        beta -= 0.1
     };
 
-    document.getElementById("useTexture").onclick = function(){
+    document.getElementById("disableJump").onclick = function (event) {
+        disableJump = !disableJump;
+		var elem = document.getElementById("disableJump");
+        translationOverX = -10.0;
+        translationOverY = 0.0;
+        isJumping = false;
+        isDescending = false;
+        torsoRotation = 90.0;
+        if (disableJump) {
+            elem.innerHTML = "Add obstacle";
+        } else {
+            elem.innerHTML = "Remove obstacle";
+        }
+    };
+
+    document.getElementById("useTexture").onclick = function () {
         useTexture = !useTexture;
         var elem = document.getElementById("useTexture");
         if (useTexture) {
@@ -568,7 +702,7 @@ window.onload = function init() {
         }
     }
 
-    document.getElementById("useAnimation").onclick = function(){
+    document.getElementById("useAnimation").onclick = function () {
         useAnimation = !useAnimation;
         var elem = document.getElementById("useAnimation");
         if (useAnimation) {
@@ -582,13 +716,13 @@ window.onload = function init() {
 
     configureTexture();
 
-    gl.activeTexture( gl.TEXTURE0 );
-    gl.bindTexture( gl.TEXTURE_2D, texture1 );
-    gl.uniform1i(gl.getUniformLocation( program, "chess0"), 0);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture1);
+    gl.uniform1i(gl.getUniformLocation(program, "chess0"), 0);
 
-    gl.activeTexture( gl.TEXTURE1 );
-    gl.bindTexture( gl.TEXTURE_2D, texture2 );
-    gl.uniform1i(gl.getUniformLocation( program, "chess1"), 1);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, texture2);
+    gl.uniform1i(gl.getUniformLocation(program, "chess1"), 1);
 
     render();
 }
@@ -598,13 +732,39 @@ var render = function () {
     if (useAnimation) {
         animate();
         translationOverX += 0.05;
-        if (translationOverX > 10) translationOverX = -10.0;
+        if (!disableJump) {
+            if (translationOverX > -0.7) {
+                if (translationOverX > 1 && translationOverY <= 0.0) {
+                    translationOverY = 0.0;
+                    if (torsoRotation > 90) torsoRotation = 90.0;
+                    else torsoRotation += 0.2;
+                    isJumping = false;
+                    isDescending = false;
+                    }
+                else {
+                    translationOverY -= 0.05;
+                    isDescending = true;
+                    if (translationOverX > 0) torsoRotation += 0.2;
+                }
+            }
+            else if (translationOverX > -7.3) {
+                isJumping = true;
+                translationOverY += 0.022;
+                if (translationOverX < -5) torsoRotation -= 0.2;
+            }
+        }
+
+
+        if (translationOverX > 10) {
+            translationOverX = -10.0;
+            translationOverY = 0.0;
+        }
         for (i = 0; i < numNodes; i++) initNodes(i);
     }
 
-    eye = vec3(radius*Math.sin(alpha), radius*Math.sin(beta), radius*Math.cos(alpha));
-    modelViewMatrix = lookAt(eye, at , up);
-    gl.uniformMatrix4fv( gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix) );
+    eye = vec3(radius * Math.sin(alpha), radius * Math.sin(beta), radius * Math.cos(alpha));
+    modelViewMatrix = lookAt(eye, at, up);
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
     gl.uniform1i(gl.getUniformLocation(program, "useTexture"), useTexture);
     gl.clear(gl.COLOR_BUFFER_BIT);
     traverse(torsoId);
