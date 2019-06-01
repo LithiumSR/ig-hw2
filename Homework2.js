@@ -700,11 +700,12 @@ window.onload = function init() {
     gl.vertexAttribPointer(vTexCoord, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vTexCoord);
 
+	/**
     document.getElementById("slider0").onchange = function (event) {
         theta[torsoId] = event.target.value;
         initNodes(torsoId);
     };
-
+	*/
     document.getElementById("increaseAlpha").onclick = function (event) {
         alpha += 0.1
     };
