@@ -563,7 +563,6 @@ function animate() {
         rightLowerLegFlag = true;
     }
     if ((isJumping && translationOverX > -6.3 && !isDescending) && theta[rightLowerHindLegId] <= 90) {
-        console.log("ok");
         theta[rightLowerHindLegId] += 2.8;
     } else if (isDescending && translationOverX > 2 && theta[rightLowerHindLegId] > 70) theta[rightLowerHindLegId] -= 0.7;
 
