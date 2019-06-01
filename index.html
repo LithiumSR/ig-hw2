@@ -74,14 +74,13 @@ void main()
 precision mediump float;
 
 varying  vec2 fTexCoord;
-uniform sampler2D chess0;
-uniform sampler2D chess1;
+uniform sampler2D texture;
 uniform bool isTorso, useTexture, isGround, isObstacle, isCross;
 void main()
 {
     if (isGround) gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
     else if (isObstacle) gl_FragColor = vec4(0.2, 0.2, 1.0, 1.0);
-    else if (isTorso && useTexture) gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0)*(texture2D(chess0, fTexCoord)*texture2D(chess1, fTexCoord));
+    else if (isTorso && useTexture) gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0)*(texture2D(texture, fTexCoord));
     else gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 
 }
@@ -125,7 +124,7 @@ void main()
                         
             </fieldset>
             <br/>
-    <canvas id="gl-canvas" width="512" height=" 700">
+    <canvas id="gl-canvas" width="1024" height=" 1400">
         Oops ... your browser doesn't support the HTML5 canvas element
     </canvas>
 </body>
