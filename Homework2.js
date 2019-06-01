@@ -165,11 +165,11 @@ for (var i = 0; i < texSize; i++) {
         var patchy = Math.floor(j / (texSize / numChecks));
         if (patchx % 2 ^ patchy % 2) v = i;
         // Linear increase texture
-        image2[4 * i * texSize + 4 * j] =  v;
-        image2[4 * i * texSize + 4 * j + 1] =  v;
-        image2[4 * i * texSize + 4 * j + 2] =  v;
+        image2[4 * i * texSize + 4 * j] = v;
+        image2[4 * i * texSize + 4 * j + 1] = v;
+        image2[4 * i * texSize + 4 * j + 2] = v;
         image2[4 * i * texSize + 4 * j + 3] = 255;
-            
+
     }
 }
 
@@ -263,7 +263,7 @@ function initNodes(Id) {
             break;
 
         case tailId:
-            m = translate(-(torsoWidth * 0.5 - tailWidth * 2), 0.9 * tailHeight - torsoWidth, -torsoHeight*0.1);
+            m = translate(-(torsoWidth * 0.5 - tailWidth * 2), 0.9 * tailHeight - torsoWidth, -torsoHeight * 0.1);
             m = mult(m, rotate(theta[tailId], 1, 0, 0));
             figure[tailId] = createNode(m, tail, leftUpperFrontLegId, null);
             break;
@@ -335,7 +335,7 @@ function initNodes(Id) {
             figure[baseObstacleId] = createNode(m, obstacleElem, null, upRightObstacleWidthId);
             break;
         case upHorizontalObstacleId:
-            m = translate(0.0, -baseObstacleWidth*0.45 , -baseObstacleHeigth*1.7);
+            m = translate(0.0, -baseObstacleWidth * 0.45, -baseObstacleHeigth * 1.7);
             m = mult(m, rotate(theta[upHorizontalObstacleId], 1, 0, 0));
             figure[upHorizontalObstacleId] = createNode(m, obstacleElem, null, null);
             break;
@@ -564,7 +564,7 @@ function animate() {
     }
     if ((isJumping && translationOverX > -6.3 && !isDescending) && theta[rightLowerHindLegId] <= 90) {
         console.log("ok");
-		theta[rightLowerHindLegId] += 2.8;
+        theta[rightLowerHindLegId] += 2.8;
     } else if (isDescending && translationOverX > 2 && theta[rightLowerHindLegId] > 70) theta[rightLowerHindLegId] -= 0.7;
 
     if (!(isJumping && !isDescending) && rightLowerLegFlag) theta[rightLowerHindLegId] -= 0.6;
@@ -727,7 +727,7 @@ window.onload = function init() {
         isJumping = false;
         isDescending = false;
         torsoRotation = 90.0;
-         theta = [90, 90, 90, 0, 90, 0, 110, 0, 90, 0, 0, 160, 105, 0, 0, 15, 345, 90, 90, 90];
+        theta = [90, 90, 90, 0, 90, 0, 110, 0, 90, 0, 0, 160, 105, 0, 0, 15, 345, 90, 90, 90];
         if (disableJump) {
             alpha = 0.0;
             beta = 0.0;
@@ -793,14 +793,14 @@ var render = function () {
                 if (translationOverX < -5) torsoRotation -= 0.2;
             }
         }
-if (translationOverX > zoom) {
+        if (translationOverX > zoom) {
             torsoRotation = 90.0;
             translationOverX = -zoom;
             translationOverY = 0.0;
-             theta = [90, 90, 90, 0, 90, 0, 110, 0, 90, 0, 0, 160, 105, 0, 0, 15, 345, 90, 90, 90];
+            theta = [90, 90, 90, 0, 90, 0, 110, 0, 90, 0, 0, 160, 105, 0, 0, 15, 345, 90, 90, 90];
         }
 
-        
+
         for (i = 0; i < numNodes; i++) initNodes(i);
     }
 
