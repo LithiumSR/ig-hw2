@@ -54,7 +54,7 @@
 </style>
 <script id="vertex-shader" type="x-shader/x-vertex">
 
-attribute  vec4 vPosition;
+    attribute  vec4 vPosition;
 
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
@@ -71,7 +71,7 @@ void main()
 
 <script id="fragment-shader" type="x-shader/x-fragment">
 
-precision mediump float;
+    precision mediump float;
 
 varying  vec2 fTexCoord;
 uniform sampler2D texture;
@@ -102,28 +102,28 @@ void main()
 
 
 <body>
-        <fieldset>
-                <legend>Texture</legend>
-                <button id="useTexture" class="btn btn-warning">Disable texture</button>
-            </fieldset>
-            
-            <fieldset>
-                <legend>Animation</legend>
-                <button id="useAnimation" class="btn btn-warning">Disable animation</button>
-				<button id="disableJump" class="btn btn-danger">Remove obstacle</button>
-            </fieldset>
-            
-            <fieldset>
-                <legend>Camera</legend>
-				<!-- <div class="slidecontainer">Torso -180.0 <input autocomplete="off" id="slider0" type="range" min="-180.0" max="180.0"
+    <fieldset>
+        <legend>Texture</legend>
+        <button id="useTexture" class="btn btn-warning">Disable texture</button>
+    </fieldset>
+
+    <fieldset>
+        <legend>Animation</legend>
+        <button id="useAnimation" class="btn btn-warning">Disable animation</button>
+        <button id="disableJump" class="btn btn-danger">Remove obstacle</button>
+    </fieldset>
+
+    <fieldset>
+        <legend>Camera</legend>
+        <!-- <div class="slidecontainer">Torso -180.0 <input autocomplete="off" id="slider0" type="range" min="-180.0" max="180.0"
                     step="10" value="0" class="slider" /> 180.0</div> -->
-                    <button id="increaseAlpha" class="btn btn-warning">Add alpha</button>
-                    <button id="decreaseAlpha" class="btn btn-warning">Decrease alpha</button>
-                    <button id="increaseBeta" class="btn btn-warning">Increase beta</button>
-                    <button id="decreaseBeta" class="btn btn-warning">Decrease beta</button>
-                        
-            </fieldset>
-            <br/>
+        <button id="increaseAlpha" class="btn btn-warning">Add alpha</button>
+        <button id="decreaseAlpha" class="btn btn-warning">Decrease alpha</button>
+        <button id="increaseBeta" class="btn btn-warning">Increase beta</button>
+        <button id="decreaseBeta" class="btn btn-warning">Decrease beta</button>
+
+    </fieldset>
+    <br />
     <canvas id="gl-canvas" width="1024" height=" 1400">
         Oops ... your browser doesn't support the HTML5 canvas element
     </canvas>
