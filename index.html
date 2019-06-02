@@ -54,8 +54,7 @@
 </style>
 <script id="vertex-shader" type="x-shader/x-vertex">
 
-    attribute  vec4 vPosition;
-
+attribute  vec4 vPosition;
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
 attribute  vec2 vTexCoord;
@@ -71,8 +70,7 @@ void main()
 
 <script id="fragment-shader" type="x-shader/x-fragment">
 
-    precision mediump float;
-
+precision mediump float;
 varying  vec2 fTexCoord;
 uniform sampler2D texture;
 uniform bool isTorso, useTexture, isGround, isObstacle, isCross;
