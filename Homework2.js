@@ -699,12 +699,6 @@ window.onload = function init() {
     gl.vertexAttribPointer(vTexCoord, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vTexCoord);
 
-    /**
-    document.getElementById("slider0").onchange = function (event) {
-        theta[torsoId] = event.target.value;
-        initNodes(torsoId);
-    };
-	*/
     document.getElementById("increaseAlpha").onclick = function (event) {
         alpha += 0.1
     };
@@ -800,10 +794,9 @@ var render = function () {
             theta = [90, 90, 90, 0, 90, 0, 110, 0, 90, 0, 0, 160, 105, 0, 0, 15, 345, 90, 90, 90];
         }
 
-
-        for (i = 0; i < numNodes; i++) initNodes(i);
     }
 
+    for (i = 0; i < numNodes; i++) initNodes(i);
     eye = vec3(radius * Math.sin(alpha), radius * Math.sin(beta), radius * Math.cos(alpha));
     modelViewMatrix = lookAt(eye, at, up);
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
