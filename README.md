@@ -1,2 +1,4 @@
-# hw2
-Base material for homework 2
+# Interactive Graphics - Homework 2
+Homework 2 of the Interactive Graphics course at Sapienza
+
+Full report can be found [here](/report.pdf)
